@@ -89,6 +89,11 @@ No configuration file is needed. The app connects to Ollama at `http://localhost
 - `src/routes/api/models/+server.ts`
 - `src/routes/chat/[id]/+page.server.ts`
 
+## Roadmap
+
+- **Change Ollama model** — swap the active model mid-conversation or set a default per chat
+- **Analytics** — usage stats: message counts, tokens, most-used models, conversation history over time
+
 ## License
 
 MIT
