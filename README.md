@@ -1,5 +1,13 @@
 # OllamaUI
 
+```
+  ___  _ _                         _   _ ___
+ / _ \| | | __ _ _ __ ___   __ _  | | | |_ _|
+| | | | | |/ _` | '_ ` _ \ / _` | | | | || |
+| |_| | | | (_| | | | | | | (_| | | |_| || |
+ \___/|_|_|\__,_|_| |_| |_|\__,_|  \___/|___|
+```
+
 A local chat interface for [Ollama](https://ollama.com), built with SvelteKit. Designed to feel like Gemini or Claude — left sidebar with full chat history, streaming responses, and everything stored locally in SQLite.
 
 ## Features
@@ -10,6 +18,7 @@ A local chat interface for [Ollama](https://ollama.com), built with SvelteKit. D
 - **Model selector** — switch between any model available in your Ollama instance per conversation
 - **Auto-titling** — conversations are automatically titled from your first message
 - **Markdown rendering** — code blocks, inline code, bold, italic, headers, and lists
+- **Analytics dashboard** — usage stats, token counts, model performance, and access logs
 
 ## Requirements
 
@@ -51,17 +60,21 @@ npm run db:studio    # Open Drizzle Studio to browse the database
 
 ```
 src/
+├── hooks.server.ts                # Request logger (all routes → access_logs)
 ├── lib/
 │   ├── components/
 │   │   └── Sidebar.svelte        # Conversation list, search, new chat
 │   └── server/
 │       └── db/
 │           ├── schema.ts          # Drizzle table definitions
-│           └── index.ts           # DB client (SQLite connection)
+│           └── index.ts           # DB client + auto-migration on startup
 └── routes/
     ├── +layout.server.ts          # Loads conversations for sidebar
     ├── +layout.svelte             # App shell (sidebar + main)
     ├── +page.svelte               # Welcome / landing page
+    ├── analytics/
+    │   ├── +page.server.ts        # Aggregates usage + access log queries
+    │   └── +page.svelte           # Dashboard UI
     ├── chat/[id]/
     │   ├── +page.server.ts        # Loads conversation, messages, models
     │   └── +page.svelte           # Chat UI with streaming
@@ -75,10 +88,13 @@ src/
 
 ## Database
 
-SQLite database is stored at `./data/ollamaui.db` (excluded from version control). Two tables:
+SQLite database is stored at `./data/ollamaui.db` (excluded from version control). Schema auto-migrates on startup — new columns are added via `ALTER TABLE` if not present.
 
-- **conversations** — id, title, model, created_at, updated_at
-- **messages** — id, conversation_id, role (`user`/`assistant`/`system`), content, created_at
+| Table | Key columns |
+|---|---|
+| `conversations` | id, title, model, created_at, updated_at |
+| `messages` | id, conversation_id, role, content, **tokens_prompt**, **tokens_completion**, **duration_ms**, created_at |
+| `access_logs` | id, method, path, status, duration_ms, user_agent, created_at |
 
 After modifying `src/lib/server/db/schema.ts`, run `npm run db:push` to apply changes.
 
@@ -92,7 +108,6 @@ No configuration file is needed. The app connects to Ollama at `http://localhost
 ## Roadmap
 
 - **Change Ollama model** — swap the active model mid-conversation or set a default per chat
-- **Analytics** — usage stats: message counts, tokens, most-used models, conversation history over time
 
 ## License
 
