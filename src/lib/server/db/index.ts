@@ -13,7 +13,7 @@ const client = new Database(DB_PATH);
 client.pragma('journal_mode = WAL');
 client.pragma('foreign_keys = ON');
 
-// Ensure tables exist
+// Ensure base tables exist
 client.exec(`
   CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
@@ -29,6 +29,28 @@ client.exec(`
     content TEXT NOT NULL,
     created_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS access_logs (
+    id TEXT PRIMARY KEY,
+    method TEXT NOT NULL,
+    path TEXT NOT NULL,
+    status INTEGER NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    user_agent TEXT,
+    created_at INTEGER NOT NULL
+  );
 `);
+
+// Migrate: add analytics columns to messages if not present
+const messageColumns = client.prepare('PRAGMA table_info(messages)').all() as { name: string }[];
+const columnNames = messageColumns.map((c) => c.name);
+if (!columnNames.includes('tokens_prompt')) {
+	client.exec('ALTER TABLE messages ADD COLUMN tokens_prompt INTEGER');
+}
+if (!columnNames.includes('tokens_completion')) {
+	client.exec('ALTER TABLE messages ADD COLUMN tokens_completion INTEGER');
+}
+if (!columnNames.includes('duration_ms')) {
+	client.exec('ALTER TABLE messages ADD COLUMN duration_ms INTEGER');
+}
 
 export const db = drizzle(client, { schema });

@@ -85,15 +85,35 @@ export async function POST({ request }) {
 								controller.enqueue(new TextEncoder().encode(sseData));
 							}
 							if (json.done) {
-								// Save assistant message
+								const tokensPrompt = json.prompt_eval_count ?? null;
+								const tokensCompletion = json.eval_count ?? null;
+								// total_duration is in nanoseconds
+								const durationMs = json.total_duration
+									? Math.round(json.total_duration / 1_000_000)
+									: null;
+
 								await db.insert(messages).values({
 									id: assistantMsgId,
 									conversationId,
 									role: 'assistant',
 									content: fullContent,
+									tokensPrompt,
+									tokensCompletion,
+									durationMs,
 									createdAt: new Date()
 								});
-								controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ done: true, id: assistantMsgId })}\n\n`));
+
+								controller.enqueue(
+									new TextEncoder().encode(
+										`data: ${JSON.stringify({
+											done: true,
+											id: assistantMsgId,
+											tokensPrompt,
+											tokensCompletion,
+											durationMs
+										})}\n\n`
+									)
+								);
 							}
 						} catch {
 							// skip unparseable lines

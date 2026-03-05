@@ -139,4 +139,20 @@
 			{/each}
 		{/if}
 	</nav>
+
+	<!-- Bottom nav -->
+	<div class="px-2 pb-3 border-t border-white/8 pt-2">
+		<a
+			href="/analytics"
+			class="flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-100
+				{$page.url.pathname === '/analytics'
+					? 'bg-white/10 text-white'
+					: 'text-white/50 hover:bg-white/6 hover:text-white/80'}"
+		>
+			<svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+			</svg>
+			Analytics
+		</a>
+	</div>
 </aside>
